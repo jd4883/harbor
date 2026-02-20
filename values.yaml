@@ -1,0 +1,31 @@
+# Harbor — upstream chart. Lab-sized storage; pre-staged PVC harbor-registry (Longhorn); Trivy scanner; OIDC via nginx.
+# Artifact cleanup: configure tag retention (e.g. 1 year) in Harbor UI per project. See README.
+
+harbor:
+  expose:
+    type: ingress
+    tls:
+      enabled: true
+  persistence:
+    enabled: true
+    persistentVolumeClaim:
+      registry:
+        existingClaim: harbor-registry
+        # size ignored when existingClaim set; pre-staged in longhorn values/volumes.yaml (30Gi)
+  externalDatabase:
+    host: postgresql-rw.postgresql.svc.cluster.local
+    port: 5432
+    database: harbor
+    username: harbor
+    existingSecret: harbor-db
+  externalRedis:
+    host: redis-master.redis.svc.cluster.local
+    port: "6379"
+    existingSecret: harbor-redis
+  # Trivy vulnerability scanner (default in upstream; explicitly enabled).
+  trivy:
+    enabled: true
+  # OIDC: use nginx ingress auth (e.g. oauth2-proxy with Okta) in front of Harbor, or set authMode to oidc and configure core.oidc*.
+  # For lab, protecting ingress with nginx OIDC is typical so Harbor UI uses the same IdP.
+# DockerHub registry credentials: create ExternalSecret that syncs from 1Password into a Secret (e.g. harbor-dockerhub)
+# and reference it for replication or registry config.

@@ -1,0 +1,17 @@
+apiVersion: v2
+name: harbor
+description: Harbor registry — upstream chart wrapper. DockerHub credentials from 1Password; PVC for artifacts; optional HA with RWX.
+type: application
+version: 0.1.0
+appVersion: "2.11.0"
+kubeVersion: ">=1.21.0-0"
+keywords:
+  - harbor
+  - registry
+home: https://goharbor.io
+sources:
+  - https://github.com/goharbor/harbor-helm
+dependencies:
+  - name: harbor
+    version: "1.14.0"
+    repository: https://helm.goharbor.io
