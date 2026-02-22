@@ -1,0 +1,74 @@
+# Harbor — upstream chart. Lab-sized storage; pre-staged PVC harbor-registry (Longhorn); Trivy scanner; OIDC via nginx.
+# Artifact cleanup: configure tag retention (e.g. 1 year) in Harbor UI per project. See README.
+#
+# Secrets:
+# - harbor-db: from 1Password item postgresql (password); username also from secret. No hardcoding.
+# - dockerhub: from 1Password item "dockerhub" (username + password) via ExternalSecret → type dockerconfigjson.
+# - harbor-redis: only if Redis has auth; create secret with key REDIS_PASSWORD and set harbor.redis.external.existingSecret.
+#
+# Pull-through cache for Docker Hub: configure in Harbor UI later (Registry → New Endpoint, then Project → New Project → Proxy Cache).
+# This chart provides the dockerhub secret and registry storage; proxy cache project uses the same secret.
+
+externalSecrets:
+  db:
+    enabled: true
+    refreshInterval: 1h
+    secretStoreRef:
+      name: onepassword-connect
+      kind: ClusterSecretStore
+    itemTitle: postgresql
+    passwordProperty: password
+  dockerhub:
+    enabled: true
+    refreshInterval: 1h
+    secretStoreRef:
+      name: onepassword-connect
+      kind: ClusterSecretStore
+    itemTitle: dockerhub
+    usernameProperty: username
+    passwordProperty: password
+
+harbor:
+  expose:
+    type: ingress
+    tls:
+      enabled: true
+  persistence:
+    enabled: true
+    persistentVolumeClaim:
+      registry:
+        existingClaim: harbor-registry
+        # size ignored when existingClaim set; pre-staged in longhorn values/volumes.yaml (30Gi)
+  # Upstream chart expects database.type + database.external (not externalDatabase). coreDatabase = DB name.
+  database:
+    type: external
+    external:
+      host: postgresql-rw.postgresql.svc.cluster.local
+      port: 5432
+      coreDatabase: harbor
+      username: ""
+      existingSecret: harbor-db
+      sslmode: disable
+  # Inject DB username from secret so both username and password are from harbor-db (no hardcoding).
+  core:
+    extraEnvVars:
+      - name: POSTGRESQL_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: harbor-db
+            key: username
+  redis:
+    type: external
+    external:
+      host: redis-master.redis.svc.cluster.local
+      port: "6379"
+      # Set existingSecret to harbor-redis only if Redis has auth (secret key REDIS_PASSWORD).
+      existingSecret: ""
+  # Docker Hub credentials from 1Password (ExternalSecret creates "dockerhub" as dockerconfigjson). Used for imagePullSecrets and pull-through cache.
+  imagePullSecrets:
+    - name: dockerhub
+  # Trivy vulnerability scanner (default in upstream; explicitly enabled).
+  trivy:
+    enabled: true
+  # OIDC: use nginx ingress auth (e.g. oauth2-proxy with Okta) in front of Harbor, or set authMode to oidc and configure core.oidc*.
+  # For lab, protecting ingress with nginx OIDC is typical so Harbor UI uses the same IdP.
