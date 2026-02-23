@@ -1,6 +1,29 @@
 # Harbor
 
-Helm wrapper around the **upstream Harbor** chart. Lab-sized setup: **existing PVC** `harbor-registry` (30Gi, pre-staged in Longhorn), external PostgreSQL and Redis, **Trivy** scanner enabled, **OIDC** via nginx (e.g. oauth2-proxy) in front of Harbor UI. **Artifact cleanup:** configure tag retention (e.g. retain 1 year, then delete older) in Harbor UI per project (Projects → Project → Tag Retention).
+Helm wrapper around the **upstream Harbor** chart. Lab-sized setup: **existing PVC** `harbor-registry` (30Gi, pre-staged in Longhorn), external PostgreSQL and Redis. **Volumes are defined in Longhorn** (e.g. `harbor-registry` in Longhorn values). **Trivy** scanner enabled, **OIDC** via nginx (e.g. oauth2-proxy) in front of Harbor UI. **Artifact cleanup:** configure tag retention (e.g. retain 1 year, then delete older) in Harbor UI per project (Projects → Project → Tag Retention).
+
+## Argo CD
+
+Deploy via Argo CD. Example Application (adjust repo/path/namespace):
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: harbor
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jd4883/harbor
+    path: .
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: harbor
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+```
 
 ---
 
