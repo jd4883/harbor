@@ -1,5 +1,7 @@
 # Harbor
 
+Values-only instantiation for Argo CD. Chart: expectedbehaviors/harbor. This repo supplies values.yaml only.
+
 Helm wrapper around the **upstream Harbor** chart. Lab-sized setup: **existing PVC** `harbor-registry` (30Gi, pre-staged in Longhorn), external PostgreSQL and Redis. **Volumes are defined in Longhorn** (e.g. `harbor-registry` in Longhorn values). **Trivy** scanner enabled, **OIDC** via nginx (e.g. oauth2-proxy) in front of Harbor UI. **Artifact cleanup:** configure tag retention (e.g. retain 1 year, then delete older) in Harbor UI per project (Projects → Project → Tag Retention).
 
 ## Argo CD
