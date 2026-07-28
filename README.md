@@ -4,6 +4,12 @@ Values-only instantiation for Argo CD. Chart: expectedbehaviors/harbor. This rep
 
 Helm wrapper around the **upstream Harbor** chart. Lab-sized setup: **existing PVC** `harbor-registry` (30Gi, pre-staged in Longhorn), external PostgreSQL and Redis. **Volumes are defined in Longhorn** (e.g. `harbor-registry` in Longhorn values). **Trivy** scanner enabled, **OIDC** via nginx (e.g. oauth2-proxy) in front of Harbor UI. **Artifact cleanup:** configure tag retention (e.g. retain 1 year, then delete older) in Harbor UI per project (Projects → Project → Tag Retention).
 
+## 🗺️ Topology
+
+![harbor topology](docs/img/topology.svg)
+
+<sub>Generated from this repo’s `values.yaml`, `Chart.yaml` and `argocd/` manifests. Source: [`docs/img/topology.mmd`](docs/img/topology.mmd). Deployed by Argo CD into namespace `harbor`.</sub>
+
 ## Argo CD
 
 Deploy via Argo CD. Example Application (adjust repo/path/namespace):
