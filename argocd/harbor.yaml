@@ -1,0 +1,12 @@
+chart: harbor
+project: harbor
+namespaceLabels:
+  pod-security.kubernetes.io/audit: privileged
+  pod-security.kubernetes.io/enforce: privileged
+  pod-security.kubernetes.io/warn: privileged
+helmRepoURL: https://expectedbehaviors.github.io/harbor
+helmChartRevision: "1.0.0"
+targetRevision: HEAD
+valuesRef: values
+helmValueFiles:
+  - $values/values.yaml
